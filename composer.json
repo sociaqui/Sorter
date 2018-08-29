@@ -1,0 +1,22 @@
+{
+    "name": "sociaqui/Sorter",
+    "description": "Trip boarding cards sorter",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jarosław Sochacki",
+            "email": "j.p.sochacki@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "6.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        }
+    }
+}

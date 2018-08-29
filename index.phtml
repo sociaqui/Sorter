@@ -1,0 +1,80 @@
+<html>
+<body>
+
+<h1>Welcome to Trip Sorter</h1>
+
+<p>Input a properly formatted .json file containing an unordered collection of 'boarding card'/'ticket' objects</p>
+
+<form id="inputForm" name="inputForm" method="post" enctype="multipart/form-data">
+    Select list file to sort:
+    <input type="file" id="upload#1" name="uploadedFile" value="Sort Your list">
+    <input type="submit" id="submit#1" name="submit" value="Sort Your list">
+</form>
+
+</body>
+</html>
+
+<?php
+
+// Use autoload
+require_once __DIR__ . '/vendor/autoload.php';
+
+// class declarations
+use app\Parser\Reader\Json;
+use app\TripSorter\TripSorter;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_FILES["uploadedFile"])) {
+
+        $uploadOk = 1;
+        $fileName = basename($_FILES["uploadedFile"]["name"]);
+        $fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $fileSize = $_FILES["uploadedFile"]["size"];
+        $fileTmpLocation = $_FILES["uploadedFile"]["tmp_name"];
+
+        // Check file size
+        if ($fileSize > 500000) {
+            echo "Sorry, your file is too large.";
+            $uploadOk = 0;
+        }
+
+        // Allow certain file formats
+        if ($fileType != "json") {
+            echo "Sorry, only json files are allowed.";
+            $uploadOk = 0;
+        }
+
+        // If $uploadOk was not set to 0 by any error, try to sort the list in the file
+        if ($uploadOk == 1) {
+
+            // Load Json Parser
+            $JsonParser = new Json();
+
+            try {
+                $tripCollection = $JsonParser->fromFile($fileTmpLocation);
+            } catch (Exception $e) {
+                echo 'Caught exception: ',  $e->getMessage(), "\n";
+            }
+
+            // Load TripSorter
+            $tripSorter = new TripSorter($tripCollection);
+            try {
+                $transportation = $tripSorter->sort()->getTransportation();
+            } catch (Exception $e) {
+                echo 'Caught exception: ',  $e->getMessage(), "\n";
+            }
+
+            if ($count = count($transportation)) {
+                echo '<p>Source File : ' . $fileName . '</p>';
+                foreach ($transportation as $index => $type) {
+                    echo '<p>' . $type->getMessage() . '</p>';
+
+                    if ($index == $count - 1)
+                        echo '<p>' . $type::MESSAGE_FINAL_DESTINATION . '</p>';
+                }
+            }
+        }
+    } else {
+        echo "Sorry, no file was submitted.";
+    }
+}
